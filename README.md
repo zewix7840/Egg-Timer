@@ -31,6 +31,9 @@ Start the timer
 Wait for the alarm — and enjoy your perfectly cooked eggs!
 
 📦 Installation (optional, if it's a script/app)
+
 git clone https://github.com/yourusername/egg-timer.git
+
 cd egg-timer
+
 python egg_timer.py
