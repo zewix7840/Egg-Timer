@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Варка яйца PRO</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fffbe6;
+      text-align: center;
+      padding: 30px;
+      overflow-x: hidden;
+    }
+    h1 {
+      color: #d17b0f;
+    }
+    select, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #ffcc66;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ffb347;
+    }
+    #egg {
+      width: 120px;
+      height: 160px;
+      background: #fff;
+      border: 5px solid #ffcc66;
+      border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+      margin: 20px auto;
+      position: relative;
+      animation: bounce 1s infinite;
+    }
+    .yolk {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: absolute;
+      top: 60px;
+      left: 40px;
+      background: yellow;
+      transition: background 0.3s;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    #timer, #result {
+      margin-top: 15px;
+      font-size: 20px;
+      color: #444;
+    }
+    #progressBar {
+      width: 80%;
+      height: 20px;
+      background: #eee;
+      margin: 15px auto;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #ffd966, #ffa500);
+      transition: width 1s linear;
+    }
+    /* Заставка */
+    #splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff5d9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    #splash h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #d17b0f;
+    }
+    #splashEgg {
+      width: 100px;
+      height: 130px;
+      background: #fff;
+      border: 5px solid #ffc107;
+      border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+      animation: bounce 1s infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Заставка -->
+  <div id="splash">
+    <div id="splashEgg"></div>
+    <h1>Добро пожаловать в Варку Яиц PRO!</h1>
+    <button onclick="startApp()">Начать</button>
+  </div>
+
+  <!-- Основной интерфейс -->
+  <h1>Умный таймер варки яиц</h1>
+
+  <label>Размер яйца:</label>
+  <select id="size">
+    <option value="small">Маленькое</option>
+    <option value="medium" selected>Среднее</option>
+    <option value="large">Большое</option>
+  </select><br>
+
+  <label>Температура:</label>
+  <select id="temp">
+    <option value="room" selected>Комнатная</option>
+    <option value="fridge">Холодильник</option>
+  </select><br>
+
+  <label>Тип варки:</label>
+  <select id="style">
+    <option value="soft">Всмятку</option>
+    <option value="medium">В мешочек</option>
+    <option value="hard">Вкрутую</option>
+  </select><br>
+
+  <button onclick="startSmartBoil()">Начать варку</button>
+
+  <div id="egg">
+    <div class="yolk" id="yolk"></div>
+  </div>
+
+  <div id="progressBar">
+    <div id="progress"></div>
+  </div>
+
+  <div id="timer">Ожидание...</div>
+  <div id="result"></div>
+
+  <audio id="ding" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3"></audio>
+
+  <script>
+    let interval;
+
+    function startApp() {
+      document.getElementById('splash').style.display = 'none';
+    }
+
+    function getBoilTime(size, temp, style) {
+      let baseTime = { soft: 4, medium: 6, hard: 10 }[style];
+      if (size === 'small') baseTime -= 0.5;
+      if (size === 'large') baseTime += 1;
+      if (temp === 'fridge') baseTime += 0.5;
+      return Math.round(baseTime * 60);
+    }
+
+    function startSmartBoil() {
+      clearInterval(interval);
+      const size = document.getElementById('size').value;
+      const temp = document.getElementById('temp').value;
+      const style = document.getElementById('style').value;
+      const ding = document.getElementById('ding');
+
+      let total = getBoilTime(size, temp, style);
+      let current = total;
+
+      interval = setInterval(() => {
+        current--;
+        updateTimer(current);
+        updateProgress(current, total);
+        updateYolkColor(current, total);
+
+        if (current <= 0) {
+          clearInterval(interval);
+          document.getElementById('result').innerText = 'Яйцо сварилось идеально!';
+          ding.play();
+        }
+      }, 1000);
+      document.getElementById('result').innerText = '';
+    }
+
+    function updateTimer(seconds) {
+      let min = Math.floor(seconds / 60);
+      let sec = seconds % 60;
+      if (sec < 10) sec = '0' + sec;
+      document.getElementById('timer').innerText = `Осталось: ${min}:${sec}`;
+    }
+
+    function updateProgress(current, total) {
+      let percent = ((total - current) / total) * 100;
+      document.getElementById('progress').style.width = percent + "%";
+    }
+
+    function updateYolkColor(current, total) {
+      let ratio = 1 - current / total;
+      let r = Math.floor(255 - ratio * 55);
+      let g = Math.floor(255 - ratio * 100);
+      let b = Math.floor(0 + ratio * 50);
+      document.getElementById('yolk').style.backgroundColor = `rgb(${r},${g},${b})`;
+    }
+  </script>
+</body>
+</html>
